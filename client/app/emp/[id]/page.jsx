@@ -3,6 +3,7 @@ import { data, options } from '@/pages/linechart'
 import axios from 'axios'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { Line } from 'react-chartjs-2'
@@ -11,14 +12,10 @@ const page = ({ params }) => {
   const [filter, setFilter] = useState('all');
   const [employees, setEmployees] = useState([])
   const [admin, setAdmin] = useState("true")
+  const [validate, setValidate] = useState("true")
   const [edit, setEdit] = useState({
-    // firstName: "",
-    // lastName: "",
     email: "",
     password: "",
-    // referalID: "",
-    // profileCreationDate: "",
-    // id: +"",
   })
   // Admin cannot edit Employee's data as a prop  is send here ⤵
   const search = useSearchParams()
@@ -104,8 +101,8 @@ const page = ({ params }) => {
     }
   }
 
+  // Fetching data when the component mounts
   useEffect(() => {
-    // Fetching data when the component mounts
     const fetchData = async () => {
       try {
         const response = await fetch(`http://localhost:3000/api/employee/${params.id}`);
@@ -120,10 +117,8 @@ const page = ({ params }) => {
     fetchData();
   }, [employees]);
 
-
-
+  // Check if the admin is viewing
   useEffect(() => {
-    // Check if the 'name' parameter is null
     if (search.get('name') === null) {
       setAdmin(false);
     } else {
@@ -131,187 +126,183 @@ const page = ({ params }) => {
     }
   }, []);
 
+  // Validating Employee
+  useEffect(() => {
+    if (search.get('employee') === null) {
+      setValidate(false);
+    } else {
+      setValidate(true);
+    }
+  }, []);
+
 
 
   return <>
-    <div className='min-h-screen bg-slate-100 scroll-smooth '>
-      <div className='h-full grid grid-cols-12 px-6 md:px-10 py-6  md:py-10  gap-3'>
-        <div className=' h-[20rem] flex justify-center items-center  col-span-12 md:col-span-6 bg-slate-100'>
-          <div className='h-[18rem] w-full flex flex-col justify-center  py-2  md:py-5 px-2 md:px-5  text-sm  md:text-base shadow-xl bg-slate-50  text-black rounded-xl gap-6'>
+    <div>
+      {
+        validate ?  // true
+          <div className='min-h-screen bg-slate-100 scroll-smooth '>
+            <div className='h-full grid grid-cols-12 px-6 md:px-10 py-6  md:py-10  gap-3'>
+              <div className=' h-[20rem] flex justify-center items-center  col-span-12 md:col-span-6 bg-slate-100'>
+                <div className='h-[18rem] w-full flex flex-col justify-center  py-2  md:py-5 px-2 md:px-5  text-sm  md:text-base shadow-xl bg-slate-50  text-black rounded-xl gap-6'>
 
-            {
-              employees && employees.map((item) => <div className='flex flex-col gap-2' key={item.id}>
+                  {
+                    employees && employees.map((item) => <div className='flex flex-col gap-2' key={item.id}>
 
-                <div>
-                  <div className=' flex justify-between'>
-                    <div>
-                      <span className='md:text-lg font-semibold mx-2'>Name:</span>
-                      <span className='md:text-lg'>{item.firstName} {item.lastName}</span>
-                    </div>
-                    <div>
-                      <span className='md:text-lg font-semibold mx-2'>ID:</span>
-                      <span className='md:text-lg'>{item.id}</span>
-                    </div>
-                  </div>
+                      <div>
+                        <div className=' flex justify-between'>
+                          <div>
+                            <span className='md:text-lg font-semibold mx-2'>Name:</span>
+                            <span className='md:text-lg'>{item.firstName} {item.lastName}</span>
+                          </div>
+                          <div>
+                            <span className='md:text-lg font-semibold mx-2'>ID:</span>
+                            <span className='md:text-lg'>{item.id}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <div >
+                          <span className='md:text-lg font-semibold mx-2'>Referal ID:</span>
+                          <span className='md:text-lg'>{item.referalID}</span>
+                        </div>
+                        <div>
+                          <span className='md:text-lg font-semibold mx-2'>Email:</span>
+                          <span className='md:text-lg'>{item.email}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className=''>
+                          <span className='md:text-lg font-semibold mx-2'>Date of joining:</span>
+                          <span className='md:text-lg'>{item.profileCreationDate}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className=''>
+                          <span className='md:text-lg font-semibold mx-2'>Sales:</span>
+                          <span className='md:text-lg'>{item.sale}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        {admin ? "" : <button type="button" className="btn btn-primary mx-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                          <span>Edit</span>
+                        </button>}
+                      </div>
+
+                    </div>)
+
+                  }
+
                 </div>
-                <div>
-                  <div >
-                    <span className='md:text-lg font-semibold mx-2'>Referal ID:</span>
-                    <span className='md:text-lg'>{item.referalID}</span>
-                  </div>
-                  <div>
-                    <span className='md:text-lg font-semibold mx-2'>Email:</span>
-                    <span className='md:text-lg'>{item.email}</span>
-                  </div>
-                </div>
-                <div>
-                  <div className=''>
-                    <span className='md:text-lg font-semibold mx-2'>Date of joining:</span>
-                    <span className='md:text-lg'>{item.profileCreationDate}</span>
-                  </div>
-                </div>
-                <div>
-                  <div className=''>
-                    <span className='md:text-lg font-semibold mx-2'>Sales:</span>
-                    <span className='md:text-lg'>{item.sale}</span>
-                  </div>
-                </div>
-
-                <div>
-                  {admin ? "" : <button type="button" className="btn btn-primary mx-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                    <span>Edit</span>
-                  </button>}
-                </div>
-
-              </div>)
-
-            }
-
-          </div>
-        </div>
-        <div className='col-span-12 md:col-span-6   h-[20rem]  bg-slate-50 p-2 flex justify-center rounded-xl shadow-lg '>
-          <Line options={options} data={data} />
-        </div>
-
-        <div className='col-span-12  py-6 md:py-4  '>
-          <div className='col-span-12  py-6 md:py-4  '>
-            <div className="bg-white shadow-md rounded p-4">
-              <h2 className="text-xl font-semibold mb-2">Customer List</h2>
-              <div className="mb-4">
-                <label htmlFor="filter" className="block font-medium text-gray-700">
-                  Filter:
-                </label>
-                <select
-                  id="filter"
-                  name="filter"
-                  className="mt-1 p-2 border rounded-md focus:ring focus:ring-indigo-200"
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                >
-                  {filterOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+              </div>
+              <div className='col-span-12 md:col-span-6   h-[20rem]  bg-slate-50 p-2 flex justify-center rounded-xl shadow-lg '>
+                <Line options={options} data={data} />
               </div>
 
-              {/* customer table ---------------------------------------------------------------- */}
-              <div className="overflow-x-auto">
-                <table className="w-full border border-collapse">
+              <div className='col-span-12  py-6 md:py-4  '>
+                <div className='col-span-12  py-6 md:py-4  '>
+                  <div className="bg-white shadow-md rounded p-4">
+                    <h2 className="text-xl font-semibold mb-2">Customer List</h2>
+                    <div className="mb-4">
+                      <label htmlFor="filter" className="block font-medium text-gray-700">
+                        Filter:
+                      </label>
+                      <select
+                        id="filter"
+                        name="filter"
+                        className="mt-1 p-2 border rounded-md focus:ring focus:ring-indigo-200"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                      >
+                        {filterOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* customer table ---------------------------------------------------------------- */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full border border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="border px-4 py-2 sm:px-6 md:px-8">Date</th>
+                            <th className="border px-4 py-2 sm:px-6 md:px-8">Customer ID</th>
+                            <th className="border px-4 py-2 sm:px-6 md:px-8">Customer Name</th>
+                            <th className="border px-4 py-2 sm:px-6 md:px-8">Customer Email ID</th>
+                            <th className="border px-4 py-2 sm:px-6 md:px-8">Customer Phone No</th>
+                            {filter === 'all' && <th className="border px-4 py-2 sm:px-6 md:px-8">Product</th>}
+                            <th className="border px-4 py-2 sm:px-6 md:px-8">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredCustomers.map((customer) => (
+                            <tr key={customer.id}>
+                              <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.date}</td>
+                              <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.id}</td>
+                              <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.name}</td>
+                              <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.email}</td>
+                              <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.phone}</td>
+                              {filter === 'all' && <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.product}</td>}
+                              <td className="border px-4 py-2 sm:px-6 md:px-8">${customer.amount}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <h1 className="text-2xl font-semibold mb-4 ">Monthly Sales</h1>
+                <table className="w-full border-collapse border border-gray-300">
                   <thead>
-                    <tr>
-                      <th className="border px-4 py-2 sm:px-6 md:px-8">Date</th>
-                      <th className="border px-4 py-2 sm:px-6 md:px-8">Customer ID</th>
-                      <th className="border px-4 py-2 sm:px-6 md:px-8">Customer Name</th>
-                      <th className="border px-4 py-2 sm:px-6 md:px-8">Customer Email ID</th>
-                      <th className="border px-4 py-2 sm:px-6 md:px-8">Customer Phone No</th>
-                      {filter === 'all' && <th className="border px-4 py-2 sm:px-6 md:px-8">Product</th>}
-                      <th className="border px-4 py-2 sm:px-6 md:px-8">Amount</th>
+                    <tr className="bg-gray-200">
+                      <th className="border border-gray-300 p-2">Month</th>
+                      <th className="border border-gray-300 p-2">Value</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCustomers.map((customer) => (
-                      <tr key={customer.id}>
-                        <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.date}</td>
-                        <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.id}</td>
-                        <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.name}</td>
-                        <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.email}</td>
-                        <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.phone}</td>
-                        {filter === 'all' && <td className="border px-4 py-2 sm:px-6 md:px-8">{customer.product}</td>}
-                        <td className="border px-4 py-2 sm:px-6 md:px-8">${customer.amount}</td>
+                    {data.labels.map((label, index) => (
+                      <tr key={index}>
+                        <td className="border border-gray-300 p-2">{label}</td>
+                        <td className="border border-gray-300 p-2">{data.datasets[0].data[index]}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
 
-          </div>
-
-          <h1 className="text-2xl font-semibold mb-4 ">Monthly Sales</h1>
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 p-2">Month</th>
-                <th className="border border-gray-300 p-2">Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.labels.map((label, index) => (
-                <tr key={index}>
-                  <td className="border border-gray-300 p-2">{label}</td>
-                  <td className="border border-gray-300 p-2">{data.datasets[0].data[index]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-        </div>
-
-        {/* <div className='col-span-12 px-6 md:px-10 py-6 md:py-4 '>
-          <div className="bg-white shadow-md rounded-xl p-4 mb-4">
-            <h2 className="text-xl font-semibold mb-2">Summary</h2>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-blue-200 p-4 rounded">
-                <p className="text-lg font-semibold mb-1">Total Customers</p>
-                <p>{customers.length}</p>
+              <div className='col-span-12 px-4 md:px-10 py-6 md:py-4 '>
+                <div className="bg-white shadow-md rounded-xl p-4 mb-4">
+                  <h2 className="text-xl font-semibold mb-2">Summary</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-200 p-4 rounded">
+                      <p className="text-lg font-semibold mb-1">Total Customers</p>
+                      <p>{customers.length}</p>
+                    </div>
+                    <div className="bg-green-200 p-4 rounded">
+                      <p className="text-lg font-semibold mb-1">Customers Onboarded This Month</p>
+                      <p>{filteredCustomers.length}</p>
+                    </div>
+                    <div className="bg-purple-200 p-4 rounded">
+                      <p className="text-lg font-semibold mb-1">Earnings Next Month</p>
+                      <p>${customers.reduce((total, customer) => total + customer.amount, 0)}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="bg-green-200 p-4 rounded">
-                <p className="text-lg font-semibold mb-1">Customers Onboarded This Month</p>
-                <p>{filteredCustomers.length}</p>
-              </div>
-              <div className="bg-purple-200 p-4 rounded">
-                <p className="text-lg font-semibold mb-1">Earnings Next Month</p>
-                <p>${customers.reduce((total, customer) => total + customer.amount, 0)}</p>
-              </div>
+
+
             </div>
           </div>
-        </div> */}
-
-
-        <div className='col-span-12 px-4 md:px-10 py-6 md:py-4 '>
-          <div className="bg-white shadow-md rounded-xl p-4 mb-4">
-            <h2 className="text-xl font-semibold mb-2">Summary</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="bg-blue-200 p-4 rounded">
-                <p className="text-lg font-semibold mb-1">Total Customers</p>
-                <p>{customers.length}</p>
-              </div>
-              <div className="bg-green-200 p-4 rounded">
-                <p className="text-lg font-semibold mb-1">Customers Onboarded This Month</p>
-                <p>{filteredCustomers.length}</p>
-              </div>
-              <div className="bg-purple-200 p-4 rounded">
-                <p className="text-lg font-semibold mb-1">Earnings Next Month</p>
-                <p>${customers.reduce((total, customer) => total + customer.amount, 0)}</p>
-              </div>
-            </div>
+          :        // false
+          <div className='flex flex-col h-screen items-center justify-center'>
+            <h3>401 Unauthorized Please Login</h3>
+            <Link href={'/login'}>Login</Link>
           </div>
-        </div>
-
-
-      </div>
+      }
     </div>
 
 

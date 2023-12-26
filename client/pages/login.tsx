@@ -3,6 +3,7 @@ import React, { ChangeEvent, useState } from 'react';
 import './globals.css'
 import { useRouter } from 'next/router';
 import axios from "axios"
+import Link from 'next/link';
 
 interface FormData {
   email: String,
@@ -15,8 +16,11 @@ const Login: React.FC = () => {
     email: '',
     password: '',
   });
-  const router = useRouter()
   const [errorMessage, setErrorMessage] = useState('');
+  const router = useRouter()
+
+  const isAdmin = true
+  const employeeValue = true
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -39,14 +43,17 @@ const Login: React.FC = () => {
         if (active === 'admin') {
           const { firstName, _id } = response.data.admin;
           // console.log("admin login success", firstName);
-          router.push(`/admin/${_id}`)
+          router.push({ pathname: `/admin/${_id}`, query: { adminValue: isAdmin } })
         }
 
         //Employee Login-------------------------------------
         if (active === 'employee') {
           const { firstName, id } = response.data.employee;
           // console.log("employee login success");
-          router.push(`/emp/${id}`)
+          router.push({
+            pathname: `/emp/${id}`,
+            query: { employee: employeeValue }
+          })
 
         }
       }
@@ -62,7 +69,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md w-[20rem] md:w-96">
+      <div className="bg-white p-6 rounded shadow-md w-[30rem] md:w-96">
         <div className='flex justify-between items-center'>
           <h1 className="text-3xl font-semibold text-purple-600 mb-6">Login</h1>
           {/* Admin or Employee btn */}
@@ -123,6 +130,13 @@ const Login: React.FC = () => {
           </button>
           <h1 className='text-red-600 text-end my-2'>{errorMessage}</h1>
         </form>
+
+        <Link href={'/forgot_email'}>
+          <h1>Forgot Email</h1>
+        </Link>
+        <Link href={'/forgot'}>
+          <h1>Forgot Password</h1>
+        </Link>
       </div>
     </div>
   );
