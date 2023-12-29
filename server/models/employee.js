@@ -38,6 +38,9 @@ const employeeSchema = new Schema({
   type: String,
   required: true,
   unique: true
+},
+OTP:{
+  type:Number,
 }
 });
 

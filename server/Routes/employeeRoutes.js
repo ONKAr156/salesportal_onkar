@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
+const nodemailer = require('nodemailer');
 const bcrypt = require("bcrypt");
 
 const Employee = require("../models/employee.js");
+
+//-----------------------------------------post--------------------------------------------------------------
 
 // Employee login
 router.post('/login', async (req, res) => {
@@ -20,14 +23,6 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ message: 'Email or referalID is incorrect' });
       }
     }
-
-    // if (email) {
-    //   employee = await Employee.findOne({ email });
-    // } else if (referalID) {
-    //   employee = await Employee.findOne({ referalID });
-    // } else {
-    //   return res.status(400).json({ message: 'Email or referalID is required' });
-    // }
 
     if (!employee) {
       return res.status(404).json({ message: 'Employee not found' });
@@ -77,6 +72,94 @@ router.post("/register", async (req, res) => {
   }
 });
 
+router.post('/cpass/:id', async (req, res) => {
+  const { id } = req.params
+  const { currentPassword } = req.body;
+
+  try {
+    let employee;
+    // Search for the employee by email or referalID
+    employee = await Employee.findOne({ id: id })
+    if (!employee) {
+      // if  employee's Email didn't match find by referalID
+      return res.status(400).json({ message: "Employee not found" })
+    }
+
+    //  authentication logic comparing hashed passwords
+    // const hashedPassword = await bcrypt.hash(currentPassword, 10);
+    console.log(req.body);
+    const passwordMatch = await bcrypt.compare(currentPassword, employee.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+
+    return res.status(200).json({ message: 'true', employee });
+
+  } catch (error) {
+
+    console.error('Error during login:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+
+  }
+});
+
+
+//Generate ------------------------------EMAIL + OTP------------------------------------------
+
+router.post('/sendEmail/:id', async (req, res) => {
+  const { id } = req.params;
+  const { oldEmail } = req.body;
+
+  const generateOTP = () => {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    return otp.toString().substring(0, 6);
+  };
+
+  const otp = generateOTP();
+
+  try {
+    const result = await Employee.findOne({ id });
+    await Employee.findByIdAndUpdate(result._id, { OTP: otp });
+
+    // Check if the Employee update was successful
+    if (!Employee) {
+      return res.status(404).send({ message: 'Employee not found.' });
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD
+      }
+    });
+
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: oldEmail,
+      subject: 'OTP for Verification',
+      text: `Your OTP is: ${otp}`
+    };
+
+    // Send email with OTP
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) {
+        console.error('Error during email sending:', error);
+        return res.status(500).send({ message: 'There was an error sending the email.', error: error.message });
+      }
+      return res.status(200).send({ message: 'OTP sent successfully.', otp });
+    });
+
+  } catch (error) {
+    console.error('Error during OTP operation:', error);
+    return res.status(500).send({ message: 'Internal server error', error: error.message });
+  }
+});
+
+
+//-----------------------------------------GET--------------------------------------------------------------
+
 //Get all the employees
 router.get('/fetchemployees', async (req, res) => {
   try {
@@ -106,15 +189,79 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+//-----------------------------------------PUT--------------------------------------------------------------
+
 // Update total sale based on referral ID
-router.put("/updateTotalSale/:referralId", async (req, res) => {
-  const { referralId } = req.params;
+router.put("/updateEmail/:id", async (req, res) => {
+  const { id } = req.params;
   // const { firstName, lastName, password, profileCreationDate, referalID, id, email } = req.body;
-  const { password, email } = req.body;
+  const {  newEmail } = req.body;
   try {
-    // console.log(req.body);
-    // Find the employee with the given referral ID
-    const employee = await Employee.findOne({ referalID: referralId });
+
+    const employee = await Employee.findOne({ id: id });
+
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+    // if (employee.OTP === OTP) {
+    // }
+    employee.email = newEmail;
+    console.log(employee);
+    // Save the updated employee data
+    await employee.save();
+
+    return res.status(200).json({
+      message: "Employee Email updated successfully",
+      employee: employee,
+    });
+  } catch (error) {
+    console.error("Error during email update:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+
+
+// OTP
+router.post("/otp/:id", async (req, res) => {
+  const { id } = req.params;
+  const { OTP } = req.body;
+  try {
+
+    const employee = await Employee.findOne({ id: id });
+
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    // Update the  employee
+if (employee.OTP === OTP) {
+  console.log(employee);
+  // Save the updated employee data
+  await employee.save();
+  return res.status(200).json({
+  
+    message: "OTP matched successfully",
+    employee: employee,
+  });
+}
+  } catch (error) {
+    console.error("Error during OTP update:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+
+//  Password
+router.put("/updateUser/:id", async (req, res) => {
+  const { id } = req.params;
+  // const { firstName, lastName, password, profileCreationDate, referalID, id, email } = req.body;
+  const { newPassword } = req.body;
+  try {
+
+    const employee = await Employee.findOne({ id: id });
 
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
@@ -122,17 +269,11 @@ router.put("/updateTotalSale/:referralId", async (req, res) => {
 
     // Update the  employee
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    employee.email = email
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
     employee.password = hashedPassword;
-    // employee.firstName = firstName;
-    // employee.lastName = lastName;
-    // employee.profileCreationDate = profileCreationDate;
-    // employee.id = id
-    // employee.referalID = referalID
 
     console.log(employee);
-    // employee.sale = updatedTotalSale;
+
 
     // Save the updated employee data
     await employee.save();
@@ -149,6 +290,8 @@ router.put("/updateTotalSale/:referralId", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+//-----------------------------------------DELETE--------------------------------------------------------------
 
 // Delete employee
 router.delete("/:id", async (req, res) => {

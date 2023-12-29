@@ -7,6 +7,8 @@ const employeeRoutes = require("./Routes/employeeRoutes.js");
 const adminRoutes = require('./Routes/adminRoutes.js');
 const customerRoutes = require('./Routes/customerRoutes.js');
 const salesStaffRoutes = require('./Routes/salesStaffRoutes.js');
+const email = require('./Routes/email.js');
+
 const cors = require('cors')
 require("dotenv").config();
 
@@ -40,3 +42,4 @@ app.use('/api/employee', employeeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/customer', customerRoutes);
 app.use('/api/salestaff', salesStaffRoutes);
+// app.use('/api/email', email);

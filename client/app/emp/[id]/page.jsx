@@ -4,12 +4,13 @@ import axios from 'axios'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 
 const page = ({ params }) => {
   const [filter, setFilter] = useState('all');
+  const [active, setActive] = useState("Email")
   const [employees, setEmployees] = useState([])
   const [admin, setAdmin] = useState("true")
   const [validate, setValidate] = useState("true")
@@ -82,26 +83,8 @@ const page = ({ params }) => {
   const firstEmployee = employees[0];
   const referalID = firstEmployee ? firstEmployee.referalID : undefined;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEdit({ ...edit, [name]: value });
-  };
-  const handelSubmit = async (e) => {
-    e.preventDefault();
-    console.log(edit);
-    try {
-      // Sending PUT request to the backend
-      const response = await axios.put(`http://localhost:3000/api/employee/updateTotalSale/${referalID}`, edit);
 
-      // Handle the response from the backend (if needed)
-      console.log('Backend response:', response.data);
-    } catch (error) {
-      // Handle errors
-      console.error('Error updating user:', error);
-    }
-  }
-
-  // Fetching data when the component mounts
+  //### Fetching Employee data ⤵
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -168,7 +151,7 @@ const page = ({ params }) => {
                         </div>
                         <div>
                           <span className='md:text-lg font-semibold mx-2'>Email:</span>
-                          <span className='md:text-lg'>{item.email}</span>
+                          <span className='md:text-lg '>{item.email}</span>
                         </div>
                       </div>
                       <div>
@@ -305,61 +288,228 @@ const page = ({ params }) => {
       }
     </div>
 
-
-
-
     {/* Edit Modal-------------------------------------------------- */}
 
     <div className="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div className="modal-dialog modal-lg">
-        <form onSubmit={e => handelSubmit(e)}>
-          <div className="modal-content">
-            <div className="modal-header">
-              {/* <pre>{JSON.stringify(edit, null, 2)}</pre> */}
-              <h5 className="modal-title" id="exampleModalLabel">Edit your data</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div className="modal-body">
-              <div className='d-flex flex-column gap-2'>
-                {/* <div>
-                  <label for="fname" className="form-label">First name</label>
-                  <input name='firstName' value={edit.firstName} onChange={handleChange} type="text" className="form-control" id="fname" placeholder="Edit Your First name" />
-                </div>
-                <div>
-                  <label for="lname" className="form-label">Last name</label>
-                  <input name='lastName' value={edit.lastName} onChange={handleChange} type="text" className="form-control" id="lname" placeholder="Edit Your Last name" />
-                </div> */}
-                <div>
-                  <label for="email" className="form-label">Email</label>
-                  <input name='email' value={edit.email} onChange={handleChange} type="email" className="form-control" id="email" placeholder="Edit Your Email" />
-                </div>
-                <div>
-                  <label for="password" className="form-label">password</label>
-                  <input name='password' value={edit.password} onChange={handleChange} type="text" className="form-control" id="password" placeholder="Edit Your password" />
-                </div>
-                {/* <div>
-                  <label for="profileCreationDate" className="form-label">profileCreationDate</label>
-                  <input name='profileCreationDate' value={edit.profileCreationDate} onChange={handleChange} type="text" className="form-control" id="profileCreationDate" placeholder="Edit Your profileCreationDate" />
-                </div>
-                <div>
-                  <label for="refID" className="form-label">Referral ID</label>
-                  <input name='referalID' value={edit.referalID} onChange={handleChange} type="text" className="form-control" id="refID" placeholder="Edit Your Referral ID" />
-                </div>
-                <div>
-                  <label for="id" className="form-label"> ID</label>
-                  <input name='id' value={edit.id} onChange={handleChange} type="text" className="form-control" id="id" placeholder="Edit Your Employee Id" />
-                </div> */}
 
+        <div className="modal-content">
+          <div className="modal-header">
+            {/* <pre>{JSON.stringify(edit, null, 2)}</pre> */}
+            <h5 className="modal-title" id="exampleModalLabel">Edit your data</h5>
+            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div className="modal-body">
+            <div className='flex gap-2'>
+              <button className={`${(active == "Email") ? "bg-blue-600 text-slate-100 p-2" : "p-2 bg-slate-200"}`}
+                onClick={() => setActive('Email')}
+              >Email</button>
 
-              </div>
+              <button className={`${(active == "Password") ? "bg-blue-600 text-slate-100 p-2" : "p-2 bg-slate-200"}`}
+                onClick={() => setActive('Password')}
+              >Password</button>
             </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
+
+            <div>
+              {
+                active == "Email" ? <EditEmail params={params} /> : <EditPassword params={params} />
+              }
             </div>
           </div>
-        </form>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
+          </div>
+        </div>
+
       </div>
+    </div>
+
+  </>
+}
+
+const EditPassword = ({ params }) => {
+  const x = useSearchParams()
+  const [passData, setPassData] = useState({
+    currentPassword: "",
+    newPassword: "",
+  })
+  const [status, setStatus] = useState()
+  const [errorData, setErrorData] = useState()
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setPassData({ ...passData, [name]: value });
+
+  };
+
+  const handlePassSubmit = async (e) => {
+    e.preventDefault();
+    // console.log("CALLED");
+    try {
+      const response = await axios.post(`http://localhost:3000/api/employee/cpass/${(+(params.id))}`, passData)
+      // const data = await response.json();
+      setStatus(response.data.message)
+
+      if (status == "true") {
+        const response = await axios.put(`http://localhost:3000/api/employee/updateUser/${(+(params.id))}`, passData)
+        console.log(response.data);
+        setStatus(response.data.message)
+      }
+
+    } catch (error) {
+      console.error('Error while posting  current password', error);
+      setErrorData(error.response.data.message)
+    }
+  };
+
+
+
+  return <>
+    <pre>{JSON.stringify(status)}</pre>
+    <div className="h-full flex flex-col justify-between">
+      <pre>{JSON.stringify(passData, null, 2)}</pre>
+      <form onSubmit={(e) => handlePassSubmit(e)}>
+        <div className=" p-3">
+
+
+          <div className="my-2">
+            <label className="md: text-lg" htmlFor="currPass">Current Password<span className="text-red-600">*</span></label>
+            <input
+              name="currentPassword"
+              value={String(passData.currentPassword)}
+              onChange={handleChange}
+              className="w-full my-2 border p-2 rounded-md" type="text" placeholder="Enter current Password" id="currPass" />
+          </div>
+
+          {
+            status ? <div className="my-2">
+              <label className="md: text-lg" htmlFor="newPass">New Password<span className="text-red-600">*</span></label>
+              <input
+                name="newPassword"
+                value={String(passData.newPassword)}
+                onChange={handleChange}
+                className="w-full my-2 border p-2 rounded-md" type="text" placeholder="Enter new Password" id="newPass" />
+            </div> : ""
+          }
+          <h2>{status}</h2>
+
+        </div>
+        <div className="my-2 text-end ">
+          {
+            status ? "" : <button type="submit" className=" bg-blue-600 text-slate-50 px-3 md:px-5 py-1 md:py-2">check</button>
+          }
+          {
+            status ? <button type="submit" className=" bg-blue-600 text-slate-50 px-3 md:px-5 py-1 md:py-2" data-bs-dismiss="modal">Submit</button> : ""
+          }
+
+        </div>
+      </form>
+      {/* <h2>{errorData}</h2> */}
+    </div>
+
+  </>
+}
+//  EDIT EMAIL------------------------------------------------------------------------
+const EditEmail = ({ params }) => {
+  const [emailData, setEmailData] = useState({
+    oldEmail: "",
+    newEmail: "",
+    OTP: "",
+  })
+  const [status, setStatus] = useState()
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEmailData({ ...emailData, [name]: value });
+
+  };
+  const handelSubmit = async e => {
+    e.preventDefault()
+    console.log(emailData);
+    try {
+      const response = await axios.post(`http://localhost:3000/api/employee/sendEmail/${(+(params.id))}`, emailData)
+      // console.log(response.data.message)
+      setStatus(response.data.message)
+      console.log(status);
+      if (status == "true") {
+        const response = await axios.post(`http://localhost:3000/api/employee/otp/${(+(params.id))}`, emailData)
+        console.log(response.data);
+        setStatus(response.data.message)
+        
+        if (status==="OTP matched successfully") {
+          const response = await axios.put(`http://localhost:3000/api/employee/updateEmail/${(+(params.id))}`, emailData)
+          setStatus(response.data.message)
+        }
+
+      }
+        
+
+    } catch (error) {
+      console.log(error);
+    }
+    setEmailData({
+      oldEmail: "",
+      newEmail: "",
+      OTP: "",
+    })
+
+  }
+
+
+  return <>
+    <div className="h-full flex flex-col justify-between">
+      <pre>{JSON.stringify(emailData, null, 2)}</pre>
+      <form action="" onSubmit={handelSubmit}>
+        <div className=" p-3">
+          {
+            status ? "" : <div className="my-2">
+              <label className="md: text-lg" htmlFor="oldEmail">Enter Old Email<span className="text-red-600">*</span></label>
+              <input
+                name="oldEmail"
+                value={String(emailData.oldEmail)}
+                onChange={handleChange}
+                className="w-full my-2 border p-2 rounded-md" type="email" placeholder="Enter new Email" id="oldEmail" required />
+            </div>
+          }
+          {
+            status ? 
+              <div className="my-2">
+                <label className="md: text-lg" htmlFor="OTP">Enter OTP<span className="text-red-600">*</span></label>
+                <input
+                  name="OTP"
+                  value={String(emailData.OTP)}
+                  onChange={handleChange}
+                  className="w-full my-2 border p-2 rounded-md" type="number" placeholder="Enter your OTP" id="OTP" required />
+              </div>: ''
+          }
+          {
+            status ===("OTP matched successfully") ? 
+              <div className="my-2">
+                <label className="md: text-lg" htmlFor="newEmail">Enter newEmail<span className="text-red-600">*</span></label>
+                <input
+                  name="newEmail"
+                  value={String(emailData.newEmail)}
+                  onChange={handleChange}
+                  className="w-full my-2 border p-2 rounded-md" type="number" placeholder="Enter your newEmail" id="newEmail" required />
+              </div>: ''
+          }
+         
+        </div>
+        <div className="my-2 text-end ">
+          {
+            status ? "" : <button type="submit" className=" bg-blue-600 text-slate-50 px-3 md:px-5 py-1 md:py-2">send OTP</button>
+          }
+          {
+            status ? <button type="submit" className=" bg-blue-600 text-slate-50 px-3 md:px-5 py-1 md:py-2" data-bs-dismiss="modal">check</button> : ""
+          }
+          {
+            status ==("OTP matched successfully") ? <button type="submit" className=" bg-blue-600 text-slate-50 px-3 md:px-5 py-1 md:py-2" data-bs-dismiss="modal">submit</button> : ""
+          }
+          
+
+        </div>
+      </form>
     </div>
 
   </>
