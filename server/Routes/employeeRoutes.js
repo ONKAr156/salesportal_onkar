@@ -48,10 +48,10 @@ router.post('/login', async (req, res) => {
 router.post("/register", async (req, res) => {
 
   //Getting the data
-  const { firstName, lastName, password, profileCreationDate, sale, id } = req.body;
+  const { firstName, lastName, password, profileCreationDate, sale, id, email } = req.body;
   const makeReferal = 'MGNA' + id;
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newEmployee = new Employee({ firstName, lastName, password: hashedPassword, profileCreationDate, sale, id, referalID: makeReferal });
+  const newEmployee = new Employee({ firstName, lastName, password: hashedPassword, profileCreationDate, sale, id, email,referalID: makeReferal });
 
   //Try and Catch Exception
   try {
@@ -195,7 +195,7 @@ router.get('/:id', async (req, res) => {
 router.put("/updateEmail/:id", async (req, res) => {
   const { id } = req.params;
   // const { firstName, lastName, password, profileCreationDate, referalID, id, email } = req.body;
-  const {  newEmail } = req.body;
+  const { oldEmail, newEmail } = req.body;
   try {
 
     const employee = await Employee.findOne({ id: id });
@@ -203,8 +203,9 @@ router.put("/updateEmail/:id", async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
-    // if (employee.OTP === OTP) {
-    // }
+    if (oldEmail === newEmail) {
+      return res.status(404).json({ message: "Please enter a new Email" });
+    }
     employee.email = newEmail;
     console.log(employee);
     // Save the updated employee data
@@ -235,17 +236,28 @@ router.post("/otp/:id", async (req, res) => {
       return res.status(404).json({ message: "Employee not found" });
     }
 
+    // const OTP_EXPIRATION_TIME = 5 * 60 * 1000
+    // const currentTime = new Date();
+    // const otpTime = new Date(employee.otpCreatedAt);
+    // const isOtpExpired = currentTime - otpTime > OTP_EXPIRATION_TIME;
+
+    // // OTP has expired
+    // if (isOtpExpired) {
+    //   return res.status(410).json({ message: "OTP has expired. Please request a new one." });
+    // }
     // Update the  employee
-if (employee.OTP === OTP) {
-  console.log(employee);
-  // Save the updated employee data
-  await employee.save();
-  return res.status(200).json({
-  
-    message: "OTP matched successfully",
-    employee: employee,
-  });
-}
+    if (employee.OTP === +OTP) {
+      console.log(employee);
+      await employee.save();
+      return res.status(200).json({
+
+        message: "OTP matched successfully",
+        employee: employee,
+      });
+    } else {
+      // Incorrect OTP
+      return res.status(401).json({ message: "OTP did not match" });
+    }
   } catch (error) {
     console.error("Error during OTP update:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -257,8 +269,7 @@ if (employee.OTP === OTP) {
 //  Password
 router.put("/updateUser/:id", async (req, res) => {
   const { id } = req.params;
-  // const { firstName, lastName, password, profileCreationDate, referalID, id, email } = req.body;
-  const { newPassword } = req.body;
+  const { confirmPassword } = req.body;
   try {
 
     const employee = await Employee.findOne({ id: id });
@@ -267,21 +278,14 @@ router.put("/updateUser/:id", async (req, res) => {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    // Update the  employee
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(confirmPassword, 10);
     employee.password = hashedPassword;
-
     console.log(employee);
-
 
     // Save the updated employee data
     await employee.save();
 
     return res.status(200).json({
-      // message: "Total sale updated successfully",
-      // employee: employee,
-
       message: "Employee updated successfully",
       employee: employee,
     });

@@ -1,8 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-// const routes = require("../Routes/route.js");
 const routes = require("./Routes/route.js");
-// const employeeRoutes = require("../Routes/employeeRoutes.js");
 const employeeRoutes = require("./Routes/employeeRoutes.js");
 const adminRoutes = require('./Routes/adminRoutes.js');
 const customerRoutes = require('./Routes/customerRoutes.js');

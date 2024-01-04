@@ -94,7 +94,8 @@ const page = ({ params }) => {
 
         fetchData();
 
-    }, [admin]);
+    }, []);
+    // }, [admin]);
 
     // Fetching employees when the component mounts
     useEffect(() => {
@@ -109,7 +110,8 @@ const page = ({ params }) => {
         };
 
         fetchData();
-    }, [employees]);
+    }, []);
+    // }, [employees]);
 
     useEffect(() => {
         //If adminValue is present then show data

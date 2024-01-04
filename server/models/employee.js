@@ -22,26 +22,26 @@ const employeeSchema = new Schema({
     type: String,
     required: true,
   },
-  email:{
-  type: String,
- 
-},
   sale: {
-  type: Number,
-},
+    type: Number,
+  },
   id: {
-  type: Number,
-  required: true,
-  unique: true
-},
+    type: Number,
+    required: true,
+    unique: true
+  },
   referalID: {
-  type: String,
-  required: true,
-  unique: true
-},
-OTP:{
-  type:Number,
-}
+    type: String,
+    required: true,
+    unique: true
+  },
+  OTP: {
+    type: Number,
+  },
+  otpCreatedAt: {
+    type: Date,
+    default: null,
+  }
 });
 
 module.exports = mongoose.model('Employee', employeeSchema);
